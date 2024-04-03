@@ -23,23 +23,23 @@ DROP TABLE IF EXISTS `addresses`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `addresses` (
-  `id` int NOT NULL,
+  `id` int NOT NULL AUTO_INCREMENT,
   `country` varchar(100) DEFAULT NULL,
   `region` varchar(100) DEFAULT NULL,
   `district` varchar(100) DEFAULT NULL,
+  `locality_type_id` int DEFAULT NULL,
   `locality_name` varchar(100) DEFAULT NULL,
-  `street_name` varchar(100) DEFAULT NULL,
   `street_type_id` int DEFAULT NULL,
+  `street_name` varchar(100) DEFAULT NULL,
   `house` int DEFAULT NULL,
   `housing` int DEFAULT NULL,
   `apartment` int DEFAULT NULL,
-  `locality_type_id` int DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `fk_addresses_street_types_idx` (`street_type_id`),
   KEY `fk_addresses_locality_types_idx` (`locality_type_id`),
   CONSTRAINT `fk_addresses_locality_types` FOREIGN KEY (`locality_type_id`) REFERENCES `locality_types` (`id`),
   CONSTRAINT `fk_addresses_street_types` FOREIGN KEY (`street_type_id`) REFERENCES `street_types` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -48,6 +48,7 @@ CREATE TABLE `addresses` (
 
 LOCK TABLES `addresses` WRITE;
 /*!40000 ALTER TABLE `addresses` DISABLE KEYS */;
+INSERT INTO `addresses` VALUES (1,'Республика Беларусь','Брестская область','Барановичский район',6,'Барановичи',1,'Парковая',11,NULL,63),(2,'Республика Беларусь','Брестская область','Барановичский район',6,'Барановичи',1,'Кирова',97,NULL,73),(3,'Республика Беларусь','Минская область',NULL,6,'Минск',2,'Дзержинский',69,2,514);
 /*!40000 ALTER TABLE `addresses` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -156,10 +157,10 @@ CREATE TABLE `employees` (
   PRIMARY KEY (`id`),
   KEY `fk_employee_category_idx` (`category_id`),
   KEY `fk_employee_specialization_idx` (`specialization_id`),
-  KEY `fk_employees_addresses_idx` (`address_id`),
+  KEY `fk_employee_adresses_idx` (`address_id`),
+  CONSTRAINT `fk_employee_adresses` FOREIGN KEY (`address_id`) REFERENCES `addresses` (`id`),
   CONSTRAINT `fk_employee_category` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`),
-  CONSTRAINT `fk_employee_specialization` FOREIGN KEY (`specialization_id`) REFERENCES `specializations` (`id`),
-  CONSTRAINT `fk_employees_addresses` FOREIGN KEY (`address_id`) REFERENCES `addresses` (`id`)
+  CONSTRAINT `fk_employee_specialization` FOREIGN KEY (`specialization_id`) REFERENCES `specializations` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -181,10 +182,10 @@ DROP TABLE IF EXISTS `locality_types`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `locality_types` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `name` varchar(5) NOT NULL,
-  `short_name` varchar(45) NOT NULL,
+  `name` varchar(45) NOT NULL,
+  `short_name` varchar(5) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -193,6 +194,7 @@ CREATE TABLE `locality_types` (
 
 LOCK TABLES `locality_types` WRITE;
 /*!40000 ALTER TABLE `locality_types` DISABLE KEYS */;
+INSERT INTO `locality_types` VALUES (5,'деревня','д.'),(6,'город','г.'),(7,'хутор','х.'),(8,'посёлок','п.'),(9,'агрогородок','аг.'),(10,'посёлок городского типа','пг.');
 /*!40000 ALTER TABLE `locality_types` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -241,7 +243,7 @@ CREATE TABLE `patients` (
   PRIMARY KEY (`id`),
   KEY `fk_patients_adresses_idx` (`address_id`),
   CONSTRAINT `fk_patients_adresses` FOREIGN KEY (`address_id`) REFERENCES `addresses` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -250,6 +252,7 @@ CREATE TABLE `patients` (
 
 LOCK TABLES `patients` WRITE;
 /*!40000 ALTER TABLE `patients` DISABLE KEYS */;
+INSERT INTO `patients` VALUES (1,'Сергей','Жабинский','Николаевич','1985-03-24 21:00:00',1),(2,'Цыганек','Максим','Владимирович','1984-08-03 21:00:00',3);
 /*!40000 ALTER TABLE `patients` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -369,7 +372,7 @@ CREATE TABLE `street_types` (
   `name` varchar(45) NOT NULL,
   `short_name` varchar(5) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -378,6 +381,7 @@ CREATE TABLE `street_types` (
 
 LOCK TABLES `street_types` WRITE;
 /*!40000 ALTER TABLE `street_types` DISABLE KEYS */;
+INSERT INTO `street_types` VALUES (1,'улица','ул.'),(2,'проспект','пр-т'),(3,'бульвар','б-р'),(4,'переулок','пер.');
 /*!40000 ALTER TABLE `street_types` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -390,4 +394,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-04-03 14:39:46
+-- Dump completed on 2024-04-03 17:51:44
