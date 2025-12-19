@@ -1,0 +1,59 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    password: root
+    username: root
+#    url: jdbc:mysql://localhost:3306/hospital?useUnicode=true&useSSL=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Europe/Minsk&autoreconnect=true
+    url: jdbc:mysql://mysql/hospital?createDatabaseIfNotExist=true&useUnicode=true&useSSL=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Europe/Minsk&autoreconnect=true
+  application:
+    name: hospital
+  jpa:
+    generate-ddl: false
+    show-sql: false
+#    properties:
+#      hibernate:
+#        dialect: org.hibernate.dialect.MySQL8Dialect
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+
+  flyway:
+    locations: classpath:/migration
+    baseline-on-migrate: true
+    baseline-version: 0
+
+#  docker:
+#   compose:
+#    enabled: false
+
+logging:
+  level:
+    root: "error"
+    org.springframework: "error"
+    org.springframework.web: "error"
+    org.springframework.data: "error"
+    by.asb.traningprogect.hospital.service: "info"
+    hibernate:
+      SQL: "error"
+      BasicBinder: "error"
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss a} [%t] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss a} [%t] %-5level %logger{36} - %msg%n"
+  file:
+    name:/apps
+
+
+server:
+  error:
+    whitelabel:
+      enabled: false
+  servlet:
+    context-path: /hospital
+  port: 8080
+
+token:
+  signing:
+    key: 53A73E5F1C4E0A2D3B5F2D784E6A1B423D6F247D1F6E5C3A596D635A75327855
+
+application-description: Private ads and services
+application-version: 0.0.1

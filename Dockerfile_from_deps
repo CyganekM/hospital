@@ -1,0 +1,64 @@
+# ============================================
+# ОСНОВНОЙ DOCKERFILE (ИСПОЛЬЗУЕТ ОБРАЗ ЗАВИСИМОСТЕЙ)
+# ============================================
+
+# Используем образ с зависимостями
+FROM hospital-deps:latest AS builder
+
+WORKDIR /build
+
+# Копируем исходный код
+COPY src src
+
+# Собираем приложение (зависимости уже в образе)
+# spring-boot:repackage выполняется автоматически spring-boot-maven-plugin
+RUN mvn clean package -DskipTests
+
+# ============================================
+# ФИНАЛЬНЫЙ ОБРАЗ
+# ============================================
+FROM eclipse-temurin:21-jre-alpine
+
+# Устанавливаем curl для health check
+RUN apk add --no-cache curl bash tzdata \
+    && ln -sf /usr/share/zoneinfo/Europe/Moscow /etc/localtime \
+    && echo "Europe/Moscow" > /etc/timezone \
+    && rm -rf /var/cache/apk/*
+
+# Создаем пользователя и группы для безопасности
+RUN addgroup -S spring && adduser -S spring -G spring
+
+WORKDIR /app
+
+# Копируем JAR из стадии сборки (ИСПРАВЛЕНО: было /workspace/app)
+COPY --from=builder /build/target/*.jar app.jar
+
+# Извлекаем слои Spring Boot (правильный способ)
+RUN java -Djarmode=layertools -jar app.jar extract --destination extracted
+
+# Создаем директорию для логов
+RUN mkdir -p /logs && chown spring:spring /logs
+
+# Переключаемся на непривилегированного пользователя
+USER spring:spring
+
+# Экспонируем порт
+EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=90s --retries=3 \
+    CMD curl -f http://localhost:8080/actuator/health || exit 1
+
+# Точка входа с использованием слоев
+ENTRYPOINT ["java", \
+    "-XX:+UseContainerSupport", \
+    "-XX:MaxRAMPercentage=75.0", \
+    "-XX:+UseZGC", \
+    "-XX:+ZGenerational", \
+    "-XX:+HeapDumpOnOutOfMemoryError", \
+    "-XX:HeapDumpPath=/logs/heapdump.hprof", \
+    "-Djava.security.egd=file:/dev/./urandom", \
+    "-Dlogging.file.path=/logs", \
+    "-Dlogging.file.name=hospital-app.log", \
+    "-cp", "app.jar:extracted/dependencies/*:extracted/spring-boot-loader/*:extracted/snapshot-dependencies/*:extracted/application/*", \
+    "org.springframework.boot.loader.launch.JarLauncher"]

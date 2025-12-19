@@ -1,0 +1,15 @@
+# Dockerfile.deps - только для зависимостей
+FROM maven:3.9-eclipse-temurin-21 AS deps
+
+WORKDIR /build
+
+# Копируем минимальный набор файлов для зависимостей
+COPY pom.xml .
+COPY .mvn .mvn
+COPY mvnw .
+
+# Скачиваем зависимости
+RUN mvn dependency:go-offline -B -DskipTests
+
+# Сохраняем зависимости в volume для reuse
+VOLUME /root/.m2/repository
