@@ -1,8 +1,11 @@
 pipeline {
   environment {
-    registry = "jfrog.it-academy.by/public/hospital/deps"
+    REGISTRY_DEPS = "jfrog.it-academy.by/public/hospital/deps"
+    REGISTRY_APP = "jfrog.it-academy.by/public/hospital/app"
     registryCredential = 'jfrog_sa'
-    DOCKERFILE = 'Dockerfile_deps'
+    DOCKERFILE_DEPS = 'Dockerfile_deps'
+    DOCKERFILE_APP = 'Dockerfile_from_deps'
+
   }
 
   agent {
@@ -73,7 +76,7 @@ pipeline {
       }
     }
 
-    stage('Building image') {
+    stage('Building image dependency') {
       when {
         expression {
           env.POM_CHANGED == 'CHANGED' || env.LATEST_EXISTS == "NO_EXIST"
@@ -81,19 +84,19 @@ pipeline {
       }
       steps {
         script {
-          echo "Building Docker image..."
+          echo "Building Docker image dependency..."
           echo "Reason: ${env.POM_CHANGED == 'CHANGED' ? 'pom.xml changed' : 'latest image not found in registry'}"
 
           dockerImage = docker.build(
-            "${registry}:${BUILD_NUMBER}",
-            "-f ${DOCKERFILE} ."
+            "${REGISTRY_DEPS}:${BUILD_NUMBER}",
+            "-f ${DOCKERFILE_DEPS} ."
           )
-          sh "docker tag ${registry}:${BUILD_NUMBER} ${registry}:latest"
+          sh "docker tag ${REGISTRY_DEPS}:${BUILD_NUMBER} ${REGISTRY_DEPS}:latest"
         }
       }
     }
 
-    stage('Push Image') {
+    stage('Push Image dependency') {
       when {
         expression {
           env.POM_CHANGED == 'CHANGED' || env.LATEST_EXISTS == "NO_EXIST"
@@ -106,12 +109,42 @@ pipeline {
             dockerImage.push('latest')
           }
 
-          echo "✅ Image pushed successfully:"
-          echo "   ${registry}:${BUILD_NUMBER}"
-          echo "   ${registry}:latest"
+          echo "✅ Image dependency pushed successfully:"
+          echo "   ${REGISTRY_DEPS}:${BUILD_NUMBER}"
+          echo "   ${REGISTRY_DEPS}:latest"
         }
       }
     }
+
+        stage('Building image application') {
+          steps {
+            script {
+              echo "Building Docker image application..."
+              dockerImage = docker.build(
+                "${REGISTRY_APP}:${BUILD_NUMBER}",
+                "-f ${DOCKERFILE_APP} ."
+              )
+              sh "docker tag ${REGISTRY_APP}:${BUILD_NUMBER} ${REGISTRY_APP}:latest"
+            }
+          }
+        }
+
+         stage('Push Image application') {
+           steps {
+             script {
+               docker.withRegistry('https://jfrog.it-academy.by/', registryCredential) {
+                 dockerImage.push()
+                 dockerImage.push('latest')
+               }
+
+               echo "✅ Image dependency pushed successfully:"
+               echo "   ${REGISTRY_APP}:${BUILD_NUMBER}"
+               echo "   ${REGISTRY_APP}:latest"
+             }
+           }
+         }
+
+
 
     stage('Remove Unused docker image') {
       when {
@@ -137,9 +170,9 @@ pipeline {
         }
       }
       steps {
-        echo "⏭️ Skipping Docker build"
+        echo "⏭️ Skipping Docker build dependency"
         echo "Reason: pom.xml unchanged AND latest image already exists in registry"
-        echo "Latest image exists at: ${registry}:latest"
+        echo "Latest image exists at: ${REGISTRY_DEPS}:latest"
       }
     }
   }
