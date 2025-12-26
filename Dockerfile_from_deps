@@ -3,7 +3,8 @@
 # ============================================
 
 # Используем образ с зависимостями
-FROM hospital-deps:latest AS builder
+#FROM hospital-deps:latest AS builder
+FROM jfrog.it-academy.by/public/hospital/deps:latest AS builder
 
 WORKDIR /build
 
