@@ -4,7 +4,7 @@ spring:
     password: root
     username: root
 #    url: jdbc:mysql://localhost:3306/hospital?useUnicode=true&useSSL=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Europe/Minsk&autoreconnect=true
-    url: jdbc:mysql://mysql/hospital?createDatabaseIfNotExist=true&useUnicode=true&useSSL=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Europe/Minsk&autoreconnect=true
+    url: jdbc:mysql://mysql-service:3306/hospital?createDatabaseIfNotExist=true&useUnicode=true&useSSL=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Europe/Minsk&autoreconnect=true
   application:
     name: hospital
   jpa:
