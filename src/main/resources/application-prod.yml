@@ -28,14 +28,25 @@ spring:
 
 logging:
   level:
-    root: "error"
-    org.springframework: "error"
-    org.springframework.web: "error"
-    org.springframework.data: "error"
+    root: "warn"
+    org.springframework: "warn"
+    org.springframework.web: "warn"
+    org.springframework.data: "warn"
     by.asb.traningprogect.hospital.service: "info"
     hibernate:
-      SQL: "error"
-      BasicBinder: "error"
+      SQL: "warn"
+      BasicBinder: "warn"
+
+#logging:
+#  level:
+#    root: "error"
+#    org.springframework: "error"
+#    org.springframework.web: "error"
+#    org.springframework.data: "error"
+#    by.asb.traningprogect.hospital.service: "info"
+#    hibernate:
+#      SQL: "error"
+#      BasicBinder: "error"
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss a} [%t] %-5level %logger{36} - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss a} [%t] %-5level %logger{36} - %msg%n"
