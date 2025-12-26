@@ -1,3 +1,13 @@
 spring:
   profiles:
-    active: prod
+    active: dev
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
