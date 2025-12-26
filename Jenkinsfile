@@ -147,11 +147,6 @@ pipeline {
 
 
     stage('Remove Unused docker image') {
-      when {
-        expression {
-          env.POM_CHANGED == 'CHANGED' || env.LATEST_EXISTS == "NO_EXIST"
-        }
-      }
       steps {
         sh '''
           # Безопасное удаление всех образов из нашего registry
