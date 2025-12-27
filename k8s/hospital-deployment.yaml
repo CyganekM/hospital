@@ -38,30 +38,39 @@ spec:
             cpu: "2000m"
         livenessProbe:
           httpGet:
-            path: /hospital/actuator/health
+            path: /hospital/actuator/health/liveness
             port: 8080
             scheme: HTTP
+            httpHeaders:
+              - name: X-Forwarded-Proto
+                value: https
           initialDelaySeconds: 120
-          periodSeconds: 15
-          timeoutSeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 3
           failureThreshold: 3
+          successThreshold: 1
+
         readinessProbe:
           httpGet:
             path: /hospital/actuator/health/readiness
             port: 8080
             scheme: HTTP
-          initialDelaySeconds: 90
-          periodSeconds: 10
-          timeoutSeconds: 3
-          failureThreshold: 1
+          initialDelaySeconds: 30
+          periodSeconds: 5
+          timeoutSeconds: 2
+          failureThreshold: 3
+          successThreshold: 1
+
         startupProbe:
           httpGet:
-            path: /hospital/actuator/health
+            path: /hospital/actuator/health/readiness
             port: 8080
             scheme: HTTP
           failureThreshold: 30
-          periodSeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 2
+
         lifecycle:
           preStop:
             exec:
-             command: ["sh", "-c", "sleep 30"]
+              command: [ "sh", "-c", "sleep 10" ]
