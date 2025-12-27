@@ -22,17 +22,17 @@ public class EmployeeController {
 
     private final EmployeeService employeeService;
 
-//    @Operation(summary ="Найти работника по идентификатору")
-//    @GetMapping("/{employeeId}")
-//    public EmployeeDto getEmployeeById(@PathVariable Integer employeeId){
-//        return employeeService.getEmployeeById(employeeId);
-//    }
-
     @Operation(summary ="Найти работника по идентификатору")
     @GetMapping("/{employeeId}")
     public EmployeeDto getEmployeeById(@PathVariable Integer employeeId){
-        return null;
+        return employeeService.getEmployeeById(employeeId);
     }
+
+//    @Operation(summary ="Найти работника по идентификатору")
+//    @GetMapping("/{employeeId}")
+//    public EmployeeDto getEmployeeById(@PathVariable Integer employeeId){
+//        return null;
+//    }
 
     @Operation(summary ="Добавить работника")
     @PostMapping
