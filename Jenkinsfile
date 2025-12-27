@@ -144,6 +144,43 @@ pipeline {
            }
          }
 
+stage('Update deployment manifest') {
+  steps {
+    script {
+      echo "Updating k8s/hospital-deployment.yaml with new image tag..."
+      sh """
+        sed -i 's|image: jfrog.it-academy.by/public/hospital/app.*|image: ${REGISTRY_APP}:${BUILD_NUMBER}|' k8s/hospital-deployment.yaml
+      """
+      sh 'cat k8s/hospital-deployment.yaml | grep "image:"'
+    }
+  }
+}
+
+stage('Commit and push to Git') {
+  steps {
+    script {
+      echo "Committing and pushing changes to Git repository..."
+
+      // Используем GitHub credentials напрямую
+      withCredentials([
+        usernamePassword(
+          credentialsId: 'token_github',
+          usernameVariable: 'GIT_USERNAME',
+          passwordVariable: 'GIT_PASSWORD'
+        )
+      ]) {
+        sh """
+          git config --global user.email "jenkins@example.com"
+          git config --global user.name "Jenkins CI/CD"
+          git add k8s/hospital-deployment.yaml
+          git commit -m "CI/CD: Update image tag to ${BUILD_NUMBER} [Build #${BUILD_NUMBER}]"
+          git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/CyganekM/hospital.git HEAD:main
+        """
+        }
+      echo "✅ Changes pushed to Git repository"
+    }
+  }
+}
 
 
     stage('Remove Unused docker image') {
