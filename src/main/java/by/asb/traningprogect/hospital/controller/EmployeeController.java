@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.nio.file.AccessDeniedException;
 
@@ -25,14 +26,11 @@ public class EmployeeController {
     @Operation(summary ="Найти работника по идентификатору")
     @GetMapping("/{employeeId}")
     public EmployeeDto getEmployeeById(@PathVariable Integer employeeId){
-        return employeeService.getEmployeeById(employeeId);
+        throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE , "Что пошло не так");
+
+//        return employeeService.getEmployeeById(employeeId);
     }
 
-//    @Operation(summary ="Найти работника по идентификатору")
-//    @GetMapping("/{employeeId}")
-//    public EmployeeDto getEmployeeById(@PathVariable Integer employeeId){
-//        return null;
-//    }
 
     @Operation(summary ="Добавить работника")
     @PostMapping
