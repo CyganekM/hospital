@@ -5,7 +5,6 @@ pipeline {
     registryCredential = 'jfrog_sa'
     DOCKERFILE_DEPS = 'Dockerfile_deps'
     DOCKERFILE_APP = 'Dockerfile_from_deps'
-
   }
 
   agent {
@@ -35,7 +34,6 @@ pipeline {
             passwordVariable: 'JFROG_PASSWORD'
           )]) {
             def fileExists = sh(script: '''
-              # Проверяем HTTP статус код
               STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
                 -u $JFROG_USER:$JFROG_PASSWORD \
                 "https://jfrog.it-academy.by/artifactory/public/hospital/deps/latest/list.manifest.json")
@@ -108,7 +106,6 @@ pipeline {
             dockerImage.push()
             dockerImage.push('latest')
           }
-
           echo "✅ Image dependency pushed successfully:"
           echo "   ${REGISTRY_DEPS}:${BUILD_NUMBER}"
           echo "   ${REGISTRY_DEPS}:latest"
@@ -116,111 +113,70 @@ pipeline {
       }
     }
 
-        stage('Building image application') {
-          steps {
-            script {
-              echo "Building Docker image application..."
-              dockerImage = docker.build(
-                "${REGISTRY_APP}:${BUILD_NUMBER}",
-                "-f ${DOCKERFILE_APP} ."
-              )
-              sh "docker tag ${REGISTRY_APP}:${BUILD_NUMBER} ${REGISTRY_APP}:latest"
-            }
+    stage('Building image application') {
+      steps {
+        script {
+          echo "Building Docker image application..."
+          dockerImage = docker.build(
+            "${REGISTRY_APP}:${BUILD_NUMBER}",
+            "-f ${DOCKERFILE_APP} ."
+          )
+          sh "docker tag ${REGISTRY_APP}:${BUILD_NUMBER} ${REGISTRY_APP}:latest"
+        }
+      }
+    }
+
+    stage('Push Image application') {
+      steps {
+        script {
+          docker.withRegistry('https://jfrog.it-academy.by/', registryCredential) {
+            dockerImage.push()
+            dockerImage.push('latest')
           }
+
+          echo "✅ Image application pushed successfully:"
+          echo "   ${REGISTRY_APP}:${BUILD_NUMBER}"
+          echo "   ${REGISTRY_APP}:latest"
         }
-
-         stage('Push Image application') {
-           steps {
-             script {
-               docker.withRegistry('https://jfrog.it-academy.by/', registryCredential) {
-                 dockerImage.push()
-                 dockerImage.push('latest')
-               }
-
-               echo "✅ Image dependency pushed successfully:"
-               echo "   ${REGISTRY_APP}:${BUILD_NUMBER}"
-               echo "   ${REGISTRY_APP}:latest"
-             }
-           }
-         }
-
-stage('Update deployment manifest') {
-  steps {
-    script {
-      echo "Updating k8s/hospital-deployment.yaml with new image tag..."
-      sh """
-        sed -i 's|image: jfrog.it-academy.by/public/hospital/app.*|image: ${REGISTRY_APP}:${BUILD_NUMBER}|' k8s/hospital-deployment.yaml
-      """
-      sh 'cat k8s/hospital-deployment.yaml | grep "image:"'
+      }
     }
-  }
-}
 
-stage('Commit and push to Git') {
-  steps {
-    script {
-      echo "Committing and pushing changes to Git repository..."
-
-      // Используем GitHub credentials напрямую
-      withCredentials([
-        usernamePassword(
-          credentialsId: 'token_github',
-          usernameVariable: 'GIT_USERNAME',
-          passwordVariable: 'GIT_PASSWORD'
-        )
-      ]) {
-        sh """
-          git config --global user.email "jenkins@example.com"
-          git config --global user.name "Jenkins CI/CD"
-          git add k8s/hospital-deployment.yaml
-          git commit -m "CI/CD: Update image tag to ${BUILD_NUMBER} [Build #${BUILD_NUMBER}]"
-          git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/CyganekM/hospital.git HEAD:main
-        """
+    stage('Trigger K8S Update Pipeline') {
+      steps {
+        script {
+          // Запускаем отдельный пайплайн для обновления K8S манифестов
+          build(
+            job: 'hospital_edit_k9s',
+            parameters: [
+ //             string(name: 'IMAGE_TAG', value: "${REGISTRY_APP}:${BUILD_NUMBER}"),
+                string(name: 'IMAGE_TAG', value: "${REGISTRY_APP}:44"),
+                string(name: 'SOURCE_BUILD', value: "44"),
+ //             string(name: 'SOURCE_BUILD', value: "${BUILD_NUMBER}"),
+              string(name: 'TRIGGERED_BY', value: "${env.JOB_NAME}#${env.BUILD_NUMBER}")
+            ],
+            wait: true,  // Ждем завершения
+            propagate: true  // падаем если K8S пайплайн упадет
+          )
         }
-      echo "✅ Changes pushed to Git repository"
+      }
     }
-  }
-}
-
 
     stage('Remove Unused docker image') {
       steps {
         sh '''
-          # Безопасное удаление всех образов из нашего registry
           docker rmi $(docker images --filter=reference="jfrog.it-academy.by/*" -q) 2>/dev/null || true
-
-          # Очищаем dangling images
           docker image prune -f
         '''
-      }
-    }
-
-    stage('Skip build notification') {
-      when {
-        expression {
-          env.POM_CHANGED == 'UNCHANGED' && env.LATEST_EXISTS == "EXIST"
-        }
-      }
-      steps {
-        echo "⏭️ Skipping Docker build dependency"
-        echo "Reason: pom.xml unchanged AND latest image already exists in registry"
-        echo "Latest image exists at: ${REGISTRY_DEPS}:latest"
       }
     }
   }
 
   post {
     always {
-      echo "=== Pipeline completed ==="
+      echo "=== Build Pipeline completed ==="
       echo "Build number: ${BUILD_NUMBER}"
+      echo "Image: ${REGISTRY_APP}:${BUILD_NUMBER}"
       echo "Result: ${currentBuild.currentResult}"
-    }
-
-    success {
-      echo "✅ Pipeline executed successfully"
-    }
-    failure {
-      echo "❌ Pipeline failed"
     }
   }
 }
