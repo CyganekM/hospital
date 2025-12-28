@@ -148,10 +148,10 @@ pipeline {
           build(
             job: 'hospital_edit_k9s',
             parameters: [
- //             string(name: 'IMAGE_TAG', value: "${REGISTRY_APP}:${BUILD_NUMBER}"),
-                string(name: 'IMAGE_TAG', value: "${REGISTRY_APP}:44"),
-                string(name: 'SOURCE_BUILD', value: "44"),
- //             string(name: 'SOURCE_BUILD', value: "${BUILD_NUMBER}"),
+              string(name: 'IMAGE_TAG', value: "${REGISTRY_APP}:${BUILD_NUMBER}"),
+  //              string(name: 'IMAGE_TAG', value: "${REGISTRY_APP}:44"),
+  //              string(name: 'SOURCE_BUILD', value: "44"),
+              string(name: 'SOURCE_BUILD', value: "${BUILD_NUMBER}"),
               string(name: 'TRIGGERED_BY', value: "${env.JOB_NAME}#${env.BUILD_NUMBER}")
             ],
             wait: true,  // Ждем завершения
