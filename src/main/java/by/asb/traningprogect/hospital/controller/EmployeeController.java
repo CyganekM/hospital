@@ -26,9 +26,9 @@ public class EmployeeController {
     @Operation(summary ="Найти работника по идентификатору")
     @GetMapping("/{employeeId}")
     public EmployeeDto getEmployeeById(@PathVariable Integer employeeId){
-//        throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE , "Что пошло не так");
+        throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE , "Что пошло не так");
 
-        return employeeService.getEmployeeById(employeeId);
+//        return employeeService.getEmployeeById(employeeId);
     }
 
 
